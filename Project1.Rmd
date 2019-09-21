@@ -1,0 +1,31 @@
+---
+title: "Project1"
+author: "LeTiciaC"
+date: "September 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+load library
+```{r}
+library(dplyr)
+```
+
+
+Import text file
+```{r}
+require(RCurl)
+df <- read.table(text = getURL("https://raw.githubusercontent.com/ltcancel/DATA607Project1/master/RawData.txt", header = F, sep = "|"))
+df <- read.delim("RawData.txt", header = TRUE, sep = "|", comment.char = "-")
+?read.table
+```
+
+filter even and odd rows
+```{r}
+df %>% dplyr::filter(row_number() %% 2 == 0) ##select even rows
+df %>% dplyr::filter(row_number() %% 2 == 1) ##select odd rows
+```
+
