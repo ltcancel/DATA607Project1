@@ -1,6 +1,6 @@
 ---
 title: "Project1"
-author: "LeTiciaC"
+author: "LeTicia Cancel"
 date: "September 20, 2019"
 output: html_document
 ---
@@ -9,23 +9,78 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-load library
-```{r}
+
+
+####Load all libraries  
+```{r warning=FALSE, results='hide', message=FALSE}
+##install.packages("kableExtra")
+library(knitr)
+library(kableExtra)
 library(dplyr)
+library(tidyr)
+library(RCurl)
+library(ggplot2)
 ```
 
 
-Import text file
+####Import text file from github
 ```{r}
-require(RCurl)
-df <- read.table(text = getURL("https://raw.githubusercontent.com/ltcancel/DATA607Project1/master/RawData.txt", header = F, sep = "|"))
-df <- read.delim("RawData.txt", header = TRUE, sep = "|", comment.char = "-")
-?read.table
+df <- read.table(text = getURL("https://raw.githubusercontent.com/ltcancel/DATA607Project1/master/RawData.txt"), header = TRUE, sep = "|", fill = TRUE, comment.char = "-")
+
+##diplay data
+kable(df[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, font_size = 12)
 ```
 
-filter even and odd rows
+####Filter even and odd rows
+```{r warning=FALSE}
+##Even rows
+even_rows <- df %>% dplyr::filter(row_number() %% 2 == 0) ##select even rows
+kable(even_rows[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, font_size = 12) 
+```
+```{r warning=FALSE}
+##Odd rows
+odd_rows <- df %>% dplyr::filter(row_number() %% 2 == 1) ##select odd rows
+kable(odd_rows[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, font_size = 12) 
+```
+
+####Create dataframe with even rows only
 ```{r}
-df %>% dplyr::filter(row_number() %% 2 == 0) ##select even rows
-df %>% dplyr::filter(row_number() %% 2 == 1) ##select odd rows
+##Selecting only rows needed 
+clean.odd.rows <- odd_rows[2:65,1:2]
+
+##Separate USCF ID from rating
+clean.odd.rows <- separate(data = clean.odd.rows, col = Player.Name, into = c("USCF ID", "Rating"), sep = " / R: ")
+
+##Separate columns
+state <- clean.odd.rows$Pair
+USCF_ID <- clean.odd.rows$`USCF ID`
+rating <- clean.odd.rows$Rating
+
+##Rename columns
+colnames(clean.odd.rows) <- c("State", "USCF ID", "Rating")
+
+##Merge both dataframes
+player.data.cleaned <- cbind(even_rows, state, USCF_ID, rating)
+kable(player.data.cleaned[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, font_size = 12) 
+```
+
+
+separate wins and numbers
+```{r warning=FALSE}
+round.one <- separate(data = player.data.cleaned, col = Round, into = c("1.1","1.2"))
+round.two <- separate(data = round.one, col = Round.1, into = c("2.1","2.2"))
+round.three <- separate(data = round.two, col = Round.2, into = c("3.1","3.2"))
+round.four <- separate(data = round.three, col = Round.3, into = c("4.1","4.2"))
+round.five <- separate(data = round.four, col = Round.4, into = c("5.1","5.2"))
+round.six <- separate(data = round.five, col = Round.5, into = c("6.1","6.2"))
+player.data <- separate(data = round.six, col = Round.6, into = c("7.1","7.2"))
+
+colnames(player.data) <- c("Pair_Num","Player_Name","Total_Pts","R1","R1_Pts","R2","R2_Pts","R3","R3_Pts","R4","R4_Pts","R5","R5_Pts","R6","R6_Pts","R7","R7_Pts","X","State","USCF_ID","Rating")
+kable(player.data[1:10,]) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, position = "center", font_size = 12)
 ```
 
